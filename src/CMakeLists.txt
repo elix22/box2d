@@ -68,12 +68,24 @@ set(BOX2D_API_FILES
 	../include/box2d/types.h
 )
 
+# Add C# binding extension file if it exists
+set(BOX2D_CSHARP_EXTENSION "${CMAKE_CURRENT_SOURCE_DIR}/box2d_csharp_extension.c")
+if(EXISTS "${BOX2D_CSHARP_EXTENSION}")
+	list(APPEND BOX2D_SOURCE_FILES "${BOX2D_CSHARP_EXTENSION}")
+	message(STATUS "Including box2d_csharp_extension.c for C# bindings")
+endif()
+
 # Hide internal functions
 # https://gcc.gnu.org/wiki/Visibility
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
-add_library(box2d ${BOX2D_SOURCE_FILES} ${BOX2D_API_FILES})
+# Build shared library for .NET P/Invoke (except Emscripten which uses static)
+if(EMSCRIPTEN)
+	add_library(box2d STATIC ${BOX2D_SOURCE_FILES} ${BOX2D_API_FILES})
+else()
+	add_library(box2d SHARED ${BOX2D_SOURCE_FILES} ${BOX2D_API_FILES})
+endif()
 
 target_include_directories(box2d
   PUBLIC
@@ -95,6 +107,17 @@ set_target_properties(box2d PROPERTIES
     SOVERSION ${PROJECT_VERSION_MAJOR}
 	DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX}
 )
+
+# iOS Framework creation
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+	set_target_properties(box2d PROPERTIES
+		FRAMEWORK TRUE
+		FRAMEWORK_VERSION A
+		MACOSX_FRAMEWORK_IDENTIFIER com.box2d.box2d
+		XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "13.0"
+		PUBLIC_HEADER "${BOX2D_API_FILES}"
+	)
+endif()
 
 if (BOX2D_COMPILE_WARNING_AS_ERROR)
 	set_target_properties(box2d PROPERTIES COMPILE_WARNING_AS_ERROR ON)
@@ -196,6 +219,7 @@ install(
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 install(
