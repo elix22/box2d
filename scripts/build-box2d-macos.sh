@@ -73,11 +73,26 @@ if [ -f "$DYLIB_PATH" ]; then
     fi
     
     mkdir -p "$OUTPUT_DIR"
-    # Copy and create libbox2d.dylib symlink
+    # Copy versioned library
     cp "$DYLIB_PATH" "$OUTPUT_DIR/"
+    
+    # Create symlink
     ln -sf libbox2d.3.2.0.dylib "$OUTPUT_DIR/libbox2d.dylib"
+    
+    # Fix install names and code sign
+    echo "Fixing install names and signing libraries..."
+    install_name_tool -id "@loader_path/libbox2d.3.2.0.dylib" "$OUTPUT_DIR/libbox2d.3.2.0.dylib"
+    
+    # Strip and re-sign to ensure unique signature
+    codesign --remove-signature "$OUTPUT_DIR/libbox2d.3.2.0.dylib" 2>/dev/null || true
+    
+    # Add timestamp to identifier to make each build unique
+    TIMESTAMP=$(date +%s)
+    codesign --force --sign - --identifier "libbox2d.${TIMESTAMP}" "$OUTPUT_DIR/libbox2d.3.2.0.dylib"
+    
     echo "✓ Copied to $OUTPUT_DIR/libbox2d.3.2.0.dylib"
     echo "✓ Created symlink $OUTPUT_DIR/libbox2d.dylib"
+    echo "✓ Signed library with identifier libbox2d.${TIMESTAMP}"
 else
     echo "✗ Failed to build libbox2d.dylib"
     exit 1

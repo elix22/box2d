@@ -2,7 +2,7 @@ name: Build Box2D Libraries
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ sokol-dev ]
     paths:
       - 'src/**'
       - 'include/**'
@@ -10,7 +10,7 @@ on:
       - 'scripts/**'
       - '.github/workflows/build-libs.yml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ sokol-dev ]
     paths:
       - 'src/**'
       - 'include/**'
@@ -277,7 +277,7 @@ jobs:
         retention-days: 90
     
     - name: Commit libraries to repository
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      if: github.ref == 'refs/heads/sokol-dev' && github.event_name == 'push'
       run: |
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "📝 Preparing to commit libraries..."
@@ -333,7 +333,7 @@ jobs:
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "⬆️  Pushing changes to repository..."
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        git push origin main
+        git push origin sokol-dev
         
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "✅ Box2D libraries committed and pushed successfully"
