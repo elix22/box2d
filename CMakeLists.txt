@@ -49,6 +49,12 @@ if (MINGW OR APPLE OR UNIX)
 	add_compile_options(-ffp-contract=off)
 endif()
 
+# Support for 16KB page sizes on Android (required for Android 15+ / API 35+)
+if(ANDROID)
+	add_link_options(-Wl,-z,max-page-size=16384)
+	message(STATUS "Box2D: Enabled 16KB page size support for Android")
+endif()
+
 option(BOX2D_DISABLE_SIMD "Disable SIMD math (slower)" OFF)
 option(BOX2D_COMPILE_WARNING_AS_ERROR "Compile warnings as errors" OFF)
 
